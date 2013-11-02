@@ -32,60 +32,11 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
 #set ( $text = $StringUtils.replace( $text, $documentHeader, '' ) )
 #end
 ##
-#macro ( topMenu $menus )
-  #foreach( $menu in $menus )
-    #if ( $menu.name )
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">$menu.name <b class="caret"></b></a>
-        <ul class="dropdown-menu">
-        #foreach( $item in $menu.items )
-
-          #if ($item.items.size() > 0)
-            <li class="dropdown-submenu">
-                #set ( $currentItemHref = $PathTool.calculateLink( $item.href, $relativePath ) )
-                #set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
-                #topLink( $currentItemHref $item.name $item.target )
-              <ul class="dropdown-menu">
-                #foreach($subitem in $item.items)
-                  #set ( $currentItemHref = $PathTool.calculateLink( $subitem.href, $relativePath ) )
-                  #set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
-                  <li>#topLink( $currentItemHref $subitem.name $subitem.target )</li>
-                #end
-              </ul>
-            </li>
-          #else
-            #set ( $currentItemHref = $PathTool.calculateLink( $item.href, $relativePath ) )
-            #set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
-            <li>#topLink( $currentItemHref $item.name $item.target )</li>
-          #end
-        #end
-        </ul>
-      </li>
-    #end
-  #end
+#macro ( removeDuplicateApacheName $text )
+#set ( $text = $StringUtils.replace( $text, 'Apache Apache', 'Apache' ) )
 #end
 ##
-#macro ( topLink $href $name $target )
-  #set ( $linkTitle = ' title="' + $name + '"' )
-  #if( $target )
-    #set ( $linkTarget = ' target="' + $target + '"' )
-  #else
-    #set ( $linkTarget = "" )
-  #end
-  <a href="$href" $linkTarget title="$name">$name</a>
-#end
-##
-#macro ( topLinks $links )
-  #set ( $counter = 0 )
-  #foreach( $item in $links )
-    #set ( $counter = $counter + 1 )
-    #set ( $currentItemHref = $PathTool.calculateLink( $item.href, $relativePath ) )
-    #set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
-    <li>#topLink( $currentItemHref $item.name $item.target )</li>
-  #end
-#end
-##
-#macro ( link $href $name $target $img $position $alt $border $width $height $icon)
+#macro ( link $href $name $target $img $position $alt $border $width $height )
   #set ( $linkTitle = ' title="' + $name + '"' )
   #if( $target )
     #set ( $linkTarget = ' target="' + $target + '"' )
@@ -107,9 +58,6 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
     #end
   #else
     <a href="$href"$linkClass$linkTarget$linkTitle>
-    #if($icon)
-      <i class="$icon"></i>
-    #end
     $name</a>
   #end
 #end
@@ -148,7 +96,7 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
     <img class="imageLink"$imgSrc$imgAlt$imgBorder$imgWidth$imgHeight/>
   #end
 #end
-#macro ( banner $banner $id )
+#macro ( banner $banner $id $class )
   #if ( $banner )
     #if( $banner.href )
       #set ( $hrf = $banner.href.replace('.remove.invalid' ,'') )
@@ -196,7 +144,7 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
         #else
            #set ( $imgHeight = "" )
         #end
-        <img src="#relreplace($src)" $alt$imgBorder$imgWidth$imgHeight/>
+        <img class="$class" src="#relreplace($src)" $alt$imgBorder$imgWidth$imgHeight/>
     #else
         <h2>$banner.name</h2>
     #end
@@ -210,21 +158,21 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
 #end
 ##
 #macro ( links $links )
-  #set ( $counter = 0 )
-  ## MSKINS-41
-  #set ( $begin = $links.size() - 1 )
-  #foreach( $index in [$begin..0] )
-    #set ( $item = $links.get( $index ) )
-    #set ( $counter = $counter + 1 )
-    #set ( $currentItemHref = $PathTool.calculateLink( $item.href, $relativePath ) )
-    #set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
-
-    <li class="pull-right">#link( $currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height false)</li>
-
-    #if ( $counter > 0 && $counter < $links.size() )
-    <li class="divider pull-right">|</li>
-    #end
-  #end
+	<ul class="nav">
+	#set ( $counter = 0 )
+	#foreach( $item in $links )
+		#set ( $counter = $counter + 1 )
+		#set ( $currentItemHref = $PathTool.calculateLink( $item.href, $relativePath ) )
+		#set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
+		#set ( $activeClass = "" )
+		#if ( $alignedFileName == $currentItemHref)
+			#set ( $activeClass = ' class="active"' )
+		#end
+		<li$activeClass>
+		#link( $currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height )
+		</li>
+	#end
+	</ul>
 #end
 ##
 #macro ( breadcrumbs $breadcrumbs $cssClass )
@@ -236,7 +184,7 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
     #end
 ##
       <li class="$cssClass">
-      #link( $currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height false )
+      #link( $currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height )
       </li>
       <li class="divider $cssClass">/</li>
   #end
@@ -262,128 +210,83 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
   #end
 #end
 ##
-#macro ( menuItem $item )
-  #set ( $collapseClass = "none" )
-  #set ( $currentItemHref = $PathTool.calculateLink( $item.href, $relativePath ) )
-  #set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
+#macro ( menuItem $item $isComponentDocumentation )
+	#set ( $collapse = "none" )
+	#set ( $currentItemHref = $PathTool.calculateLink( $item.href, $relativePath ) )
+	#set ( $currentItemHref = $currentItemHref.replaceAll( '\\', '/' ) )
 ##
-  #if ( $item && $item.items && $item.items.size() > 0 )
-    #if ( $item.collapse == false )
-      #set ( $collapseClass = "icon-chevron-down" )
-    #else
-      ## By default collapsed
-      #set ( $collapseClass = "icon-chevron-right" )
-    #end
+	#if ( $item && $item.items && $item.items.size() > 0 )
+		#if ( $item.collapse == false )
+			#set ( $collapse = "expanded" )
+		#else
+			## By default collapsed
+			#set ( $collapse = "collapsed" )
+		#end
 ##
-    #set ( $display = false )
-    #displayTree( $display $item )
+		#set ( $display = false )
+		#displayTree( $display $item )
 ##
-    #if ( $alignedFileName == $currentItemHref || $display )
-      #set ( $collapseClass = "icon-chevron-down" )
-    #end
-  #end
-  
-  #if ( $alignedFileName == $currentItemHref )
-    <li class="active">
-  #else
-    <li>
-  #end
-  
-  #if ( $item.img )
-    #if ( $item.position == "left" )
-      #if ( $alignedFileName == $currentItemHref )
-        <a href="#">#image($item.img $item.alt $item.border $item.width $item.height) $item.name</a>
-      #else
-        #link($currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height false)
-      #end
-    #else
-      #if ( $alignedFileName == $currentItemHref )
-        <a href="#">$item.name #image($item.img $item.alt $item.border $item.width $item.height)</a>
-      #else
-        #link($currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height false)
-      #end
-    #end
-  #else
-    #if ( $alignedFileName == $currentItemHref )
-      <a href="#"><i class="$collapseClass"></i>$item.name</a>
-    #else
-      #link( $currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height $collapseClass)
-    #end
-  #end
-  #if ( $item && $item.items && $item.items.size() > 0 )
-    #if ( $collapseClass == "icon-chevron-down" )
-      <ul class="nav nav-list">
-        #foreach( $subitem in $item.items )
-          #menuItem( $subitem )
-        #end
-      </ul>
-    #end
-  #end
-  </li>
+		#if ( $alignedFileName == $currentItemHref || $display )
+			#set ( $collapse = "expanded" )
+		#end
+	#end
+	#set ( $active = "" )
+	#if ( $alignedFileName == $currentItemHref )
+	#set ($active = " active")
+	#end
+	#set ( $thisProjectDir = "../${project.artifactId}" )
+	#if ($thisProjectDir == $PathTool.getDirectoryComponent( $item.href ))
+	#set ($active = " active")
+	#end
+	#if (${project.artifactId} != "log4j" && $isComponentDocumentation && 
+				($item.href == "team-list.html" || $item.href == "mail-lists.html" 
+				|| $item.href == "issue-tracking.html" || $item.href == "license.html" 
+				|| $item.href == "source-repository.html"))
+	<!-- Removing overall project item $item.name from component-specific menu -->
+	#else
+		<li class="$collapse$active">
+		#link($currentItemHref $item.name $item.target $item.img $item.position $item.alt $item.border $item.width $item.height )
+		#if ( $item && $item.items && $item.items.size() > 0 )
+			#if ( $collapse == "expanded" )
+				<ul>
+					#foreach( $subitem in $item.items )
+						#menuItem( $subitem $isComponentDocumentation )
+					#end
+				</ul>
+			#end
+		#end
+		</li>
+ 	#end
 #end
 ##
 #macro ( mainMenu $menus )
-<ul class="nav nav-list">
-  #foreach( $menu in $menus )
-    #if ( $menu.name )
-      #if ( $menu.img )
-        #if( $menu.position )
-          #set ( $position = $menu.position )
-        #else
-          #set ( $position = "left" )
-        #end
-##
-        #if ( ! ( $menu.img.toLowerCase().startsWith("http:/") || $menu.img.toLowerCase().startsWith("https:/") ||
-                $menu.img.toLowerCase().startsWith("ftp:/") || $menu.img.toLowerCase().startsWith("mailto:") ||
-                $menu.img.toLowerCase().startsWith("file:/") || ($menu.img.toLowerCase().indexOf("://") != -1) ) )
-          #set ( $src = $PathTool.calculateLink( $menu.img, $relativePath ) )
-          #set ( $src = $src.replaceAll( '\\', '/' ) )
-          #set ( $src = ' src="' + $src + '"' )
-        #else
-          #set ( $src = ' src="' + $menu.img + '"' )
-        #end
-##
-        #if( $menu.alt )
-          #set ( $alt = ' alt="' + $menu.alt + '"' )
-        #else
-          #set ( $alt = ' alt="' + $menu.name + '"' )
-        #end
-##
-        #if( $menu.border )
-          #set ( $border = ' border="' + $menu.border + '"' )
-        #else
-          #set ( $border = ' border="0"' )
-        #end
-##
-        #if( $menu.width )
-          #set ( $width = ' width="' + $menu.width + '"' )
-        #else
-          #set ( $width = "" )
-        #end
-        #if( $menu.height )
-          #set ( $height = ' height="' + $menu.height + '"' )
-        #else
-          #set ( $height = "" )
-        #end
-##
-        #set ( $img = '<img class="imageLink"' + $src + $alt + $border + $width + $height + "/>" )
-##
-        #if ( $position == "left" )
-        <li class="nav-header">$img $menu.name</li>
-        #else
-        <li class="nav-header">$menu.name $img</li>
-        #end
-      #else
-        <li class="nav-header">$menu.name</li>
-      #end
-    #end
-    #if ( $menu.items && $menu.items.size() > 0 )
-      #foreach( $item in $menu.items )
-        #menuItem( $item )
-      #end
-    #end
-  #end
-</ul>
+	#foreach( $menu in $menus )
+		<ul class="nav nav-list">
+		#set ($isComponentDocumentation = false)
+ 		#if ( $menu.name )
+			#set ( $menuName = $menu.name )
+            #if ( $menuName == $title )
+              #set ( $menu.img = "icon-home" )
+			#elseif ( $menuName == "Project Documentation" )
+              #set ( $menu.img = "icon-info-sign" )
+			#elseif ( $menuName == "Development" )
+              #set ( $menu.img = "icon-cog" )
+			#elseif ( $menuName == "User Guide" )
+              #set ( $menu.img = "icon-book" )
+			#end
+			#if ( $menu.img )
+			 <li class="nav-header"><i class="$menu.img"></i>$menuName</li>
+			#else
+			 <li class="nav-header">$menuName</li>
+			#end
+		#end
+		#if ( $menu.items && $menu.items.size() > 0 )
+			#foreach( $item in $menu.items )
+				#menuItem( $item $isComponentDocumentation )
+			#end
+		#end
+		</ul>
+	#end
 #end
 ##
 #macro ( copyright )
@@ -455,47 +358,17 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
     #set ( $prefix = "" )
   #end
 ##
-  #if ( $datePosition.equalsIgnoreCase( $position ) )
-    #if ( ( $datePosition.equalsIgnoreCase( "right" ) ) || ( $datePosition.equalsIgnoreCase( "bottom" ) ) )
-        <li id="publishDate" class="pull-right">$i18n.getString( "site-renderer", $locale, "template.lastpublished" ): $dateValue</li> $prefix
-      #if ( $versionPosition.equalsIgnoreCase( $position ) )
-        <li id="projectVersion" class="pull-right">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</li>
-      #end
-    #elseif ( ( $datePosition.equalsIgnoreCase( "navigation-bottom" ) ) || ( $datePosition.equalsIgnoreCase( "navigation-top" ) ) )
-      <div id="lastPublished">
-        <span id="publishDate">$i18n.getString( "site-renderer", $locale, "template.lastpublished" ): $dateValue</span>
-        #if ( $versionPosition.equalsIgnoreCase( $position ) )
-          <span class="divider">|</span> <span id="projectVersion">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</span>
-        #end
-      </div>
-    #elseif ( $datePosition.equalsIgnoreCase("left") )
-        <li id="publishDate">$i18n.getString( "site-renderer", $locale, "template.lastpublished" ): $dateValue</li>
-        #if ( $versionPosition.equalsIgnoreCase( $position ) )
-          <li class="divider">|</li> <li id="projectVersion">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</li>
-        #end
-        #if ( $breadcrumbs && $breadcrumbs.size() > 0 )
-          <li class="divider">|</li> #breadcrumbs( $breadcrumbs "" )
-        #end
-    #end
-  #elseif ( $versionPosition.equalsIgnoreCase( $position ) )
-    #if ( $versionPosition.equalsIgnoreCase( "right" ) )
-      $prefix <li id="projectVersion" class="pull-right">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</li>
-    #elseif ( $versionPosition.equalsIgnoreCase( "bottom" ) )
-      <span id="projectVersion">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</span>
-    #elseif ( ( $versionPosition.equalsIgnoreCase( "navigation-bottom" ) ) || ( $versionPosition.equalsIgnoreCase( "navigation-top" ) ) )
-      <div id="lastPublished">
-        <span id="projectVersion">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</span>
-      </div>
-    #elseif ( $versionPosition.equalsIgnoreCase("left") )
-        <li id="projectVersion">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</li>
-        #if ( $breadcrumbs && $breadcrumbs.size() > 0 )
-          | #breadcrumbs( $breadcrumbs "")
-        #end
-    #end
-  #elseif ( $position.equalsIgnoreCase( "left" ) )
-    #if ( $breadcrumbs && $breadcrumbs.size() > 0 )
-        #breadcrumbs( $breadcrumbs "" )
-    #end
+  #if ( ( $datePosition.equalsIgnoreCase( "right" ) ) || ( $datePosition.equalsIgnoreCase( "bottom" ) ) )
+      <li id="publishDate" class="pull-right">$i18n.getString( "site-renderer", $locale, "template.lastpublished" ): $dateValue</li> $prefix
+      <li id="projectVersion" class="pull-right">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</li>
+  #elseif ( ( $datePosition.equalsIgnoreCase( "navigation-bottom" ) ) || ( $datePosition.equalsIgnoreCase( "navigation-top" ) ) )
+    <div id="lastPublished">
+      <span id="publishDate">$i18n.getString( "site-renderer", $locale, "template.lastpublished" ): $dateValue</span>
+      <span class="divider">|</span> <span id="projectVersion">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</span>
+    </div>
+  #elseif ( $datePosition.equalsIgnoreCase("left") )
+      <li id="publishDate">$i18n.getString( "site-renderer", $locale, "template.lastpublished" ): $dateValue</li>
+      <li class="divider">|</li> <li id="projectVersion">$i18n.getString( "site-renderer", $locale, "template.version" ): ${project.version}</li>
   #end
 #end
 ##
@@ -568,40 +441,6 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
   #end
 #end
 ##
-#macro ( googleAnalytics $accountId )
-  #if( $accountId && $accountId != "" )
-    <!-- Google Analytics -->
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', '$accountId']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-
-    </script>
-  #end
-#end
-##
-#macro ( googleSearch $top )
-<form id="search-form" action="http://www.google.com/search" method="get" #if ( $top ) class="navbar-search pull-right" #end>
-  #if( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'googleSearch' ).getChild( 'sitesearch' ) )
-    #set( $sitesearchValue = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'googleSearch' ).getChild( 'sitesearch' ).getValue() )
-  #else
-    #set( $startIndex = $project.url.indexOf("://") + 3 )
-    #set( $sitesearchValue = $project.url.substring( $startIndex, $project.url.length() ) )
-  #end
-
-  <input value="$sitesearchValue" name="sitesearch" type="hidden"/>
-  <input class="search-query" name="q" id="query" type="text" />
-</form>
-<script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=search-form"></script>
-#end
-##
 #macro ( forkMeOnGitHub )
   #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'gitHub' )
             && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'gitHub' ).getChild( 'projectId' ) )
@@ -639,154 +478,6 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
   #end
 #end
 ##
-#macro ( prjProfile )
-  #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'profile' ) )
-
-    #set ( $profile = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'profile' ).getValue() )
-
-    #if ( $profile.equalsIgnoreCase( "retired" )
-          || $profile.equalsIgnoreCase( "pre-release" )
-          || $profile.equalsIgnoreCase( "sandbox" ) )
-      <style type="text/css">body{background-image: url('$relativePath/images/profiles/${profile}.png');}</style>
-    #end
-
-  #end
-#end
-##
-#macro ( googlePlusOne $sideBarEnabled )
-  #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'googlePlusOne' )
-          && $project.url )
-    #set( $dataSize = 'tall' )
-    #if( !$sideBarEnabled )
-      #set( $dataSize = 'medium' )
-    #end
-
-    <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
-
-    #if( !$sideBarEnabled )
-    <ul class="nav pull-right"><li style="margin-top: 10px;">
-    #end
-
-    <div class="g-plusone" data-href="$project.url" data-size="$dataSize" #if( !$sideBarEnabled ) width="60px" align="right" #end></div>
-
-    #if( !$sideBarEnabled )
-    </li></ul>
-    #end
-  #end
-#end
-##
-#macro ( facebookLike $sideBarEnabled )
-  #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'facebookLike' )
-          && $project.url )
-    #set( $facebookLike = $decoration.custom.getChild( 'facebookLike' ) )
-    ## kindly hardcoded
-
-    #set( $layout = 'box_count' )
-    #if( !$sideBarEnabled )
-      #set( $layout = 'button_count' )
-    #end
-
-    #set( $colorscheme = 'light' )
-    #if( !$sideBarEnabled )
-      #set( $colorscheme = 'dark' )
-    #end
-
-    #set( $frameWidth = 'width:48px; height:63px' )
-    #if( !$sideBarEnabled )
-      #set( $frameWidth = 'width:80px; height:20px' )
-    #end
-
-    <iframe src="http://www.facebook.com/plugins/like.php?href=$project.url&send=false&layout=$layout&show-faces=false&action=like&colorscheme=$colorscheme"
-        scrolling="no" frameborder="0"
-        style="border:none; $frameWidth; margin-top: 10px;" #if( !$sideBarEnabled ) class="pull-right" #end></iframe>
-  #end
-#end
-##
-#macro ( followTwitter $sideBarEnabled )
-  #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'twitter' )
-        && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'twitter' ).getChild( 'user' ) )
-    #set ( $user = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'twitter' ).getChild( 'user' ).getValue() )
-
-    #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'twitter' ).getChild( 'showUser' )
-            && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'twitter' ).getChild( 'showUser' ).getValue().equalsIgnoreCase( "true" ) )
-      #set( $showUser = true )
-    #else
-      #set( $showUser = false )
-    #end
-
-    #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'twitter' ).getChild( 'showFollowers' )
-            && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'twitter' ).getChild( 'showFollowers' ).getValue().equalsIgnoreCase( "true" ) )
-      #set( $showFollowers = true )
-    #else
-      #set( $showFollowers = false )
-    #end
-
-    #if ( $sideBarEnabled )
-      #set( $dataSize = "medium" )
-      #set( $dataAlign = "left" )
-    <div id="twitter">
-    #else
-      #set( $dataSize = "large" )
-      #set( $dataAlign = "right" )
-    <ul class="nav pull-right"><li>
-    #end
-
-    <a href="https://twitter.com/${user}" class="twitter-follow-button" data-show-count="${showFollowers}" data-align="${dataAlign}" data-size="${dataSize}" data-show-screen-name="${showUser}" data-lang="${locale}">Follow ${user}</a>
-    <script type="text/javascript">!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-
-    #if ( $sideBarEnabled )
-    </div>
-    #else
-    </li></ul>
-    #end
-  #end
-#end
-##
-#macro ( ohloh )
-  #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'ohloh' )
-        && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'ohloh' ).getChild( 'projectId' ) )
-    #set ( $projectId = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'ohloh' ).getChild( 'projectId' ).getValue() )
-
-    #set( $widget = "users_logo.js" )
-
-    #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'ohloh' ).getChild( 'widget' ) )
-      #set( $definedWidget = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'ohloh' ).getChild( 'widget' ).getValue() )
-
-      #if ( $definedWidget.equalsIgnoreCase( "users-logo" ) )
-        #set( $widget = "users_logo.js" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "users-green" ) )
-        #set( $widget = "users.js?style=green" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "users-red" ) )
-        #set( $widget = "users.js?style=red" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "users-blue" ) )
-        #set( $widget = "users.js?style=blue" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "users-gray" ) )
-        #set( $widget = "users.js?style=gray" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "users-rainbow" ) )
-        #set( $widget = "users.js?style=rainbow" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "users" ) )
-        #set( $widget = "users.js" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "thin-badge" ) )
-        #set( $widget = "thin_badge.js" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "partner-badge" ) )
-        #set( $widget = "partner_badge.js" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "languages" ) )
-        #set( $widget = "languages.js" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "factoids" ) )
-        #set( $widget = "factoids.js" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "cocomo" ) )
-        #set( $widget = "cocomo.js" )
-      #elseif ( $definedWidget.equalsIgnoreCase( "stats" ) )
-        #set( $widget = "basic_stats.js" )
-      #end
-    #end
-
-    <div id="ohloh" class="pull-right">
-      <script type="text/javascript" src="http://www.ohloh.net/p/${projectId}/widgets/project_${widget}"></script>
-    </div>
-  #end
-#end
-##
 <html xmlns="http://www.w3.org/1999/xhtml"#if ( $locale ) xml:lang="$locale.language" lang="$locale.language"#end>
   <head>
     <meta charset="${outputEncoding}" />
@@ -805,291 +496,76 @@ $StringUtils.replace( $text, '$relativePath', $relativePath )##
     <meta http-equiv="Content-Language" content="$locale.language" />
 #end
     <title>$title</title>
-    <link rel="stylesheet" href="$relativePath/css/apache-maven-fluido-1.3.0.min.css" />
-    <link rel="stylesheet" href="$relativePath/css/site.css" />
+
+	<link rel="stylesheet" href="$relativePath/css/bootstrap.min.css" type="text/css" />
+	<link rel="stylesheet" href="$relativePath/css/site.css" type="text/css" />
     <link rel="stylesheet" href="$relativePath/css/print.css" media="print" />
 
-    #prjProfile()
-
-    <script type="text/javascript" src="$relativePath/js/apache-maven-fluido-1.3.0.min.js"></script>
+	<script type="text/javascript" src="$relativePath/js/jquery.min.js"></script>
+	<script type="text/javascript" src="$relativePath/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="$relativePath/js/prettify.min.js"></script>
+	<script type="text/javascript" src="$relativePath/js/site.js"></script>
 
     #if ( $decoration.body.head )
       #foreach( $item in $decoration.body.head.getChildren() )
         #set ( $head = $item.toString().trim() )
         #set ( $documentHeader = '<?xml version="1.0" encoding="UTF-8"?>' )
         #if ( $item.name == "script" )
-          #set ( $head = $StringUtils.replace( $item.toUnescapedString(), $documentHeader, "" ) )
+          #relreplace( $StringUtils.replace( $item.toUnescapedString(), $documentHeader, "" ) )
         #else
-          #set ( $head = $StringUtils.replace( $item.toString(), $documentHeader, "" ) )
+          #relreplace( $StringUtils.replace( $item.toString(), $documentHeader, "" ) )
         #end
-
-        $StringUtils.replace( $head, '@relativePath@', ${relativePath} )
       #end
     #end
 
     #if( $headContent )$headContent#end
-    #googleAnalytics( $decoration.googleAnalyticsAccountId )
   </head>
-    #if ( $decoration.custom.getChild( 'fluidoSkin' )
-              && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'topBarEnabled' )
-              && 'true' == $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'topBarEnabled' ).getValue() )
-        #set( $topBarEnabled = true )
-    <body class="topBarEnabled">
-    #else
-    <body class="topBarDisabled">
-    #end
-    #forkMeOnGitHub()
 
-    #set ( $sideBarEnabled = true )
-    #if ( $decoration.custom.getChild('fluidoSkin') )
-        #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'sideBarEnabled' )
-              && 'false' == $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'sideBarEnabled' ).getValue() )
-            #set ( $sideBarEnabled = false )
-        #end
+	<body class="composite">
+        #banner( $decoration.bannerLeft "bannerLeft" "logo-left" )
+        #banner( $decoration.bannerRight "bannerRight" "logo-right" )
+		<div class="clear"></div>
 
-        #if ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'googleSearch' )
-              && ( $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'googleSearch' ).getChild( 'sitesearch' )
-                    || $project.url ) )
-          #set ( $searchEnabled = true )
-        #else
-          #set ( $searchEnabled = false )
-        #end
-    #end
+		<div class="navbar">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<a class="brand" href="$project.url">$project.name &trade;</a>
+					<ul class="nav">#publishDate( "navigation-top" $decoration.publishDate $decoration.version )</ul>
+                    <div class="pull-right">#links( $decoration.body.links )</div>
+				</div>
+			</div>
+		</div>
 
-    #if ( $topBarEnabled )
-      #if ( $decoration.custom.getChild('fluidoSkin')
-           && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'navBarStyle' ) )
-        #set ( $navBarStyle = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'navBarStyle' ).getValue())
-      #else
-        #set ( $navBarStyle = '')
-      #end
+		<div class="container-fluid">
+			<table class="layout-table">
+				<tr>
+					<td class="sidebar">
+						<div class="well sidebar-nav">
+							#mainMenu( $decoration.body.menus )
+						</div>
+						<div id="poweredBy">
+							#builtByLogo( $decoration.poweredBy )
+						</div>
+					</td>
+					<td class="content">
+						$bodyContent
+					</td>
+				</tr>
+			</table>
+		</div>
 
-
-    <div id="topbar" class="navbar navbar-fixed-top $navBarStyle">
-      <div class="navbar-inner">
-        #if ( $sideBarEnabled )
-        <div class="container-fluid">
-        <a data-target=".nav-collapse" data-toggle="collapse" class="btn btn-navbar">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </a>
-        #else
-            #if ( $decoration.custom.getChild('fluidoSkin')
-                  && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'topBarContainerStyle' ) )
-              <div class="container" style="$decoration.custom.getChild( 'fluidoSkin' ).getChild( 'topBarContainerStyle' ).getValue()"><div class="nav-collapse">
-            #else
-              <div class="container"><div class="nav-collapse">
+		<div class="footer">
+			<p>Copyright &copy;#copyright()All Rights Reserved.</p>
+            #if ( $decoration.custom.getChild("footer") )
+              #foreach( $item in $decoration.custom.getChild("footer").getChildren() )
+                #set ( $foot = $item.toString().trim() )
+                #removeheader ( $foot )
+				#set ( $foot = $StringUtils.replace( $foot, '@project.name@', ${project.name} ) )
+                #removeDuplicateApacheName ( $foot )
+				$foot
+              #end
             #end
+		</div>
+	</body>
 
-        #end
-        #if ( $decoration.custom.getChild('fluidoSkin')
-              && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'topBarIcon' ) )
-            #set ( $topBarIcon = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'topBarIcon' ) )
-
-            #if ( $topBarIcon.getChild( 'href' ) )
-                #set ( $hrf = $topBarIcon.getChild( 'href' ).getValue() )
-                #if ( ! ( $hrf.toLowerCase().startsWith("http:/") || $hrf.toLowerCase().startsWith("https:/") ||
-                    $hrf.toLowerCase().startsWith("ftp:/") || $hrf.toLowerCase().startsWith("mailto:") ||
-                    $hrf.toLowerCase().startsWith("file:/") || ($hrf.toLowerCase().indexOf("://") != -1) ) )
-                    #set ( $hrf = $PathTool.calculateLink( $hrf, $relativePath ) )
-                    #set ( $hrf = $hrf.replaceAll( '\\', '/' ) )
-                    #if ( ( $hrf == '' ) )
-                        #set ( $hrf = './' )
-                    #end
-                #end
-                <a class="brand" href="$hrf" #if( $topBarIcon.getChild( 'alt' ) ) title="$topBarIcon.getChild( 'alt' ).getValue()"#end>
-
-                #if( $topBarIcon.getChild( 'name' ) )
-                    #set ( $topBarIconName = $topBarIcon.getChild( 'name' ).getValue() )
-                #else
-                    #set ( $topBarIconName = $project.name )
-                #end
-
-                #if( $topBarIcon.getChild( 'src' ) )
-                    #set ( $src = $topBarIcon.getChild( 'src' ).getValue() )
-                    #if ( ! ( $src.toLowerCase().startsWith("http:/") || $src.toLowerCase().startsWith("https:/") ||
-                          $src.toLowerCase().startsWith("ftp:/") || $src.toLowerCase().startsWith("mailto:") ||
-                          $src.toLowerCase().startsWith("file:/") || ($src.toLowerCase().indexOf("://") != -1) ) )
-                        #set ( $src = $PathTool.calculateLink( $src, $relativePath ) )
-                        #set ( $src = $src.replaceAll( '\\', '/' ) )
-                    #end
-                    #if ( $topBarIcon.getChild( 'alt' ) )
-                          #set ( $alt = $topBarIcon.getChild( 'alt' ).getValue() )
-                    #else
-                          #set ( $alt = $topBarIconName )
-                    #end
-                    <img src="$src" alt="$alt" />
-                #else
-                    $topBarIconName
-                #end
-
-                </a>
-            #end
-        #end
-
-          ## MSKINS-31
-          #if( $decoration.body && $decoration.body.menus )
-            <ul class="nav">
-              #topMenu( $decoration.body.menus )
-            </ul>
-          #end
-
-          #if ( $searchEnabled && !$sideBarEnabled )
-            #googleSearch(true)
-          #end
-
-          #if ( !$sideBarEnabled )
-            #facebookLike( $sideBarEnabled )
-            #googlePlusOne( $sideBarEnabled )
-            #followTwitter( $sideBarEnabled )
-          #end
-
-         ## MSKINS-31
-          #if( $decoration.body
-              && $decoration.body.links
-              && $decoration.body.links.size() > 0 )
-            <ul class="nav pull-right">
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">External Links <b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                #topLinks( $decoration.body.links )
-                </ul>
-              </li>
-            </ul>
-          #end
-
-          #if ($topBarEnabled)
-            </div>
-          #end
-
-        </div>
-      </div>
-    </div>
-    #end
-
-    #if ( $sideBarEnabled )
-    <div class="container-fluid">
-    #else
-    <div class="container">
-    #end
-      <div id="banner">
-        <div class="pull-left">
-        #if( $decoration.bannerLeft )
-          #banner( $decoration.bannerLeft "bannerLeft" )
-        #else
-          ## MSKINS-32
-          <h1>
-            #if( $project.name && $project.name != '' )
-              $project.name
-            #else
-              $project.artifactId
-            #end
-          </h1>
-        #end
-        </div>
-        <div class="pull-right">#banner( $decoration.bannerRight "bannerRight" )</div>
-        <div class="clear"><hr/></div>
-      </div>
-
-      <div id="breadcrumbs">
-        <ul class="breadcrumb">
-          #publishDate( "left" $decoration.publishDate $decoration.version )
-
-          #publishDate( "right" $decoration.publishDate $decoration.version )
-
-          ## MSITE-44
-          #if ( !$topBarEnabled
-              && $decoration.body.links
-              && $decoration.body.links.size() > 0 )
-            #if ( ( $decoration.publishDate
-                    && $decoration.publishDate.position
-                    && $decoration.publishDate.position.equalsIgnoreCase( "right" ) )
-                || ( $decoration.version
-                    && $decoration.version.position
-                    && $decoration.version.position.equalsIgnoreCase( "right" ) ) )
-            <li class="divider pull-right">|</li>
-          #end
-          #links( $decoration.body.links )
-          #end
-        </ul>
-      </div>
-
-      #if ( $sideBarEnabled )
-      #set ($leftColumnClass="span2")
-      #if ( $decoration.custom && $decoration.custom.getChild('fluidoSkin')
-        && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'leftColumnClass' ) )
-        #set ( $leftColumnClass = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'leftColumnClass' ).getValue() )
-      #end
-
-      <div class="row-fluid">
-        <div id="leftColumn" class="$leftColumnClass">
-          <div class="well sidebar-nav">
-          #publishDate( "navigation-top" $decoration.publishDate $decoration.version )
-          #mainMenu( $decoration.body.menus )
-          #publishDate( "navigation-bottom" $decoration.publishDate $decoration.version )
-          #if ( $searchEnabled )
-            #googleSearch( false )
-          #end
-
-          <hr class="divider" />
-
-           <div id="poweredBy">
-             #googlePlusOne( $sideBarEnabled )
-             <div class="clear"></div>
-             #facebookLike( $sideBarEnabled )
-             <div class="clear"></div>
-             #followTwitter( $sideBarEnabled )
-             <div class="clear"></div>
-             #builtByLogo( $decoration.poweredBy )
-            </div>
-          </div>
-        </div>
-        #end
-
-        #set ($bodyColumnClass="span10")
-        #if ( $decoration.custom && $decoration.custom.getChild('fluidoSkin')
-          && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'bodyColumnClass' ) )
-          #set ( $bodyColumnClass = $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'bodyColumnClass' ).getValue() )
-        #end
-
-        <div id="bodyColumn" #if ( $sideBarEnabled ) class="$bodyColumnClass" #end>
-          #if ( $title && $title.endsWith( "Project License" ) )
-            $bodyContent
-          #else
-            #if ( $decoration.custom.getChild('fluidoSkin')
-              && $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'sourceLineNumbersEnabled' )
-              && 'true' == $decoration.custom.getChild( 'fluidoSkin' ).getChild( 'sourceLineNumbersEnabled' ).getValue() )
-              #set ( $sourceStyle = "prettyprint linenums" )
-            #else
-              #set ( $sourceStyle = "prettyprint" )
-            #end
-
-            $bodyContent.replaceAll( "<div class=\"source\"><pre>", "<div class=\"source\"><pre class=\"$sourceStyle\">" ).replaceAll( "class=\"bodyTable\"", "class=\"table table-striped\"" )
-          #end
-        </div>
-      #if ( $sideBarEnabled )
-      </div>
-      #end
-    </div>
-
-    <footer>
-      #if ( $sideBarEnabled )
-      <div class="container-fluid">
-      #else
-      <div class="container">
-      #end
-        <div class="row pagination-centered">Copyright &copy;#copyright()All Rights Reserved.#publishDate( "bottom" $decoration.publishDate $decoration.version )</div>
-        <div class="row pagination-centered">
-        #if ( $decoration.custom.getChild("footer") )
-          #foreach( $item in $decoration.custom.getChild("footer").getChildren() )
-            #set ( $foot = $item.toString().trim() )
-            #removeheader ( $foot )
-            $StringUtils.replace( $foot, '@project.name@', ${project.name} )
-          #end
-        #end
-        </div>
-      </div>
-    </footer>
-  </body>
 </html>
